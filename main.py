@@ -6,6 +6,8 @@ from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.colors import HexColor
 from fastapi.responses import FileResponse
+from dotenv import load_dotenv
+
 import tempfile
 import os
 
@@ -16,7 +18,8 @@ import google.generativeai as genai
 app = FastAPI()
 
 # Gemini client
-genai.configure(api_key="AIzaSyAzRnc7wkcFl96jds3UddPkV6vAbLI8gT8")
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 
