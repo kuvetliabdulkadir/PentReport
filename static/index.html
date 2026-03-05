@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>PentReport AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #0f0f1a; color: #fff; }
+        h1 { color: #00ff88; }
+        input[type=file] { margin: 20px 0; display: block; color: #fff; }
+        button { background: #00ff88; color: #000; border: none; padding: 12px 24px; cursor: pointer; font-size: 16px; border-radius: 4px; }
+        button:hover { background: #00cc66; }
+        #sonuc { margin-top: 20px; color: #00ff88; }
+        #hata { margin-top: 20px; color: #ff4444; }
+    </style>
+</head>
+<body>
+    <h1>🔒 PentReport AI</h1>
+    <p>Nmap XML dosyanı yükle, AI destekli güvenlik raporu al.</p>
+
+    <input type="file" id="dosya" accept=".xml">
+    <button onclick="raporOlustur()">Rapor Oluştur</button>
+
+    <div id="sonuc"></div>
+    <div id="hata"></div>
+
+    <script>
+        async function raporOlustur() {
+            const dosya = document.getElementById('dosya').files[0];
+            if (!dosya) { document.getElementById('hata').innerText = 'Lütfen bir XML dosyası seçin.'; return; }
+
+            document.getElementById('sonuc').innerText = '⏳ Rapor oluşturuluyor...';
+            document.getElementById('hata').innerText = '';
+
+            const form = new FormData();
+            form.append('file', dosya);
+
+            const response = await fetch('/rapor', { method: 'POST', body: form });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'guvenlik_raporu.pdf';
+                a.click();
+                document.getElementById('sonuc').innerText = '✅ Rapor indirildi!';
+            } else {
+                document.getElementById('hata').innerText = '❌ Hata oluştu.';
+            }
+        }
+    </script>
+</body>
+</html>

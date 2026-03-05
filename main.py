@@ -1,3 +1,4 @@
+from fastapi.staticfiles import StaticFiles
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import A4
@@ -16,7 +17,7 @@ import xml.etree.ElementTree as ET
 import google.generativeai as genai
 
 app = FastAPI()
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 # Gemini client
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -79,9 +80,15 @@ async def rapor_olustur(file: UploadFile = File(...)):
 
     # AI analizi al
     tarama_metni = "\n".join(portlar)
-    prompt = f"""Sen bir siber güvenlik uzmanısın. 
-    Nmap tarama sonuçlarını analiz et, her port için risk seviyesi belirt (Düşük/Orta/Yüksek), 
-    sade ve anlaşılır Türkçe yaz.
+    prompt = f"""Sen bir siber güvenlik uzmanısın. Nmap tarama sonuçlarını analiz et.
+    Her port için şunları yaz:
+    1. Risk Seviyesi: Düşük / Orta / Yüksek
+    2. Neden riskli: Kısa açıklama
+    3. Nasıl kapatılır: Adım adım teknik talimat (komutlar dahil, örneğin Windows veya Linux için)
+
+    Teknik olmayan kişiler de anlayabilmeli ama komutlar da olmalı.
+    Türkçe yaz.
+
     Tarama sonuçları:
     {tarama_metni}"""
 
