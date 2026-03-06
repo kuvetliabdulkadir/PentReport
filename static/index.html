@@ -4,50 +4,134 @@
     <meta charset="UTF-8">
     <title>PentReport AI</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #0f0f1a; color: #fff; }
-        h1 { color: #00ff88; }
-        input[type=file] { margin: 20px 0; display: block; color: #fff; }
-        button { background: #00ff88; color: #000; border: none; padding: 12px 24px; cursor: pointer; font-size: 16px; border-radius: 4px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0f0f1a; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .kart { background: #1a1a2e; padding: 40px; border-radius: 12px; width: 100%; max-width: 540px; }
+        h1 { color: #00ff88; margin-bottom: 8px; }
+        p { color: #aaa; margin-bottom: 30px; }
+        .sekme-grup { display: flex; margin-bottom: 24px; border-bottom: 2px solid #333; }
+        .sekme { padding: 10px 20px; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .sekme.aktif { color: #00ff88; border-bottom: 2px solid #00ff88; }
+        .panel { display: none; }
+        .panel.aktif { display: block; }
+        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 14px; }
+        input[type=file], input[type=text] { width: 100%; padding: 10px; background: #0f0f1a; border: 1px solid #333; color: #fff; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+        button { width: 100%; background: #00ff88; color: #000; border: none; padding: 14px; cursor: pointer; font-size: 16px; border-radius: 6px; font-weight: bold; }
         button:hover { background: #00cc66; }
-        #sonuc { margin-top: 20px; color: #00ff88; }
-        #hata { margin-top: 20px; color: #ff4444; }
+        button:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .sonuc { margin-top: 16px; padding: 12px; border-radius: 6px; text-align: center; }
+        .sonuc.basari { background: #0a2e1a; color: #00ff88; }
+        .sonuc.hata { background: #2e0a0a; color: #ff4444; }
     </style>
 </head>
 <body>
-    <h1>🔒 PentReport AI</h1>
-    <p>Nmap XML dosyanı yükle, AI destekli güvenlik raporu al.</p>
+    <div class="kart">
+        <h1>🔒 PentReport AI</h1>
+        <p>AI destekli güvenlik tarama ve raporlama aracı.</p>
 
-    <input type="file" id="dosya" accept=".xml">
-    <button onclick="raporOlustur()">Rapor Oluştur</button>
+        <div class="sekme-grup">
+            <div class="sekme aktif" onclick="sekmeAc('xml')">XML Yükle</div>
+            <div class="sekme" onclick="sekmeAc('ip')">IP / Domain Tara</div>
+        </div>
 
-    <div id="sonuc"></div>
-    <div id="hata"></div>
+        <div id="xml" class="panel aktif">
+            <label>Nmap XML dosyası seç:</label>
+            <input type="file" id="dosya" accept=".xml">
+            <button id="xmlBtn" onclick="xmlRapor()">Rapor Oluştur</button>
+        </div>
+
+        <div id="ip" class="panel">
+            <label>IP adresi veya domain gir:</label>
+            <input type="text" id="hedef" placeholder="örn: 192.168.1.1 veya example.com">
+            <button id="ipBtn" onclick="ipRapor()">Tara ve Raporla</button>
+        </div>
+
+        <div id="sonuc"></div>
+    </div>
 
     <script>
-        async function raporOlustur() {
+        function sekmeAc(id) {
+            document.querySelectorAll('.sekme').forEach(s => s.classList.remove('aktif'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('aktif'));
+            document.getElementById(id).classList.add('aktif');
+            event.target.classList.add('aktif');
+        }
+
+        async function xmlRapor() {
             const dosya = document.getElementById('dosya').files[0];
-            if (!dosya) { document.getElementById('hata').innerText = 'Lütfen bir XML dosyası seçin.'; return; }
-
-            document.getElementById('sonuc').innerText = '⏳ Rapor oluşturuluyor...';
-            document.getElementById('hata').innerText = '';
-
+            if (!dosya) { sonucGoster('Lütfen XML dosyası seçin.', 'hata'); return; }
+            const btn = document.getElementById('xmlBtn');
+            btn.disabled = true; btn.innerText = '⏳ Rapor oluşturuluyor...';
             const form = new FormData();
             form.append('file', dosya);
+            try {
+                const res = await fetch('/rapor', { method: 'POST', body: form });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    indir(blob, 'guvenlik_raporu.pdf');
+                    sonucGoster('✅ Rapor indirildi!', 'basari');
+                } else { sonucGoster('❌ Hata oluştu.', 'hata'); }
+            } catch(e) { sonucGoster('❌ Bağlantı hatası.', 'hata'); }
+            btn.disabled = false; btn.innerText = 'Rapor Oluştur';
+        }
 
-            const response = await fetch('/rapor', { method: 'POST', body: form });
+        async function ipRapor() {
+            const hedef = document.getElementById('hedef').value.trim();
+            if (!hedef) { sonucGoster('Lütfen IP veya domain girin.', 'hata'); return; }
+            const btn = document.getElementById('ipBtn');
+            btn.disabled = true; btn.innerText = '⏳ Taranıyor... (1-2 dakika sürebilir)';
+            try {
+                const res = await fetch(`/tara-ve-raporla?hedef=${hedef}`, { method: 'POST' });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    indir(blob, `${hedef}_rapor.pdf`);
+                    sonucGoster('✅ Rapor indirildi!', 'basari');
+                } else { sonucGoster('❌ Hata oluştu.', 'hata'); }
+            } catch(e) { sonucGoster('❌ Bağlantı hatası.', 'hata'); }
+            btn.disabled = false; btn.innerText = 'Tara ve Raporla';
+        }
 
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'guvenlik_raporu.pdf';
-                a.click();
-                document.getElementById('sonuc').innerText = '✅ Rapor indirildi!';
-            } else {
-                document.getElementById('hata').innerText = '❌ Hata oluştu.';
-            }
+        function indir(blob, dosyaAdi) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = dosyaAdi; a.click();
+        }
+
+        function sonucGoster(mesaj, tip) {
+            const el = document.getElementById('sonuc');
+            el.className = `sonuc ${tip}`;
+            el.innerText = mesaj;
         }
     </script>
+<div style="margin-top:30px;">
+    <h2 style="color:#00ff88; margin-bottom:16px;">📋 Rapor Geçmişi</h2>
+    <div id="gecmis"></div>
+</div>
+
+<script>
+    async function gecmisYukle() {
+        const res = await fetch('/gecmis');
+        const raporlar = await res.json();
+        const el = document.getElementById('gecmis');
+
+        if (raporlar.length === 0) {
+            el.innerHTML = '<p style="color:#aaa">Henüz rapor yok.</p>';
+            return;
+        }
+
+        el.innerHTML = raporlar.map(r => `
+            <div style="background:#0f0f1a; padding:12px; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="color:#00ff88">${r.hedef}</span>
+                    <span style="color:#aaa; font-size:12px; margin-left:12px">${r.tarih}</span>
+                </div>
+                <a href="/gecmis/${r.id}/indir" style="background:#00ff88; color:#000; padding:6px 14px; border-radius:4px; text-decoration:none; font-size:13px;">İndir</a>
+            </div>
+        `).join('');
+    }
+
+    // Sayfa açılınca geçmişi yükle
+    gecmisYukle();
+</script>
 </body>
 </html>
