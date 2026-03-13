@@ -35,7 +35,7 @@ async def tara_ve_raporla(hedef: str):
     port_listesi = nmap_tara(ip)
 
     if not port_listesi:
-        raise HTTPException(status_code=404, detail=f"{hedef} adresine ulaşılamadı veya açık port bulunamadı.")
+        raise HTTPException(status_code=503, detail=f"Nmap bulunamadı veya {hedef} adresine ulaşılamadı.")
 
     portlar = []
     cve_verileri = {}
