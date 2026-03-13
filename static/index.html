@@ -2,136 +2,292 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>PentReport AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PentReport AI | Premium Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background: #0f0f1a; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .kart { background: #1a1a2e; padding: 40px; border-radius: 12px; width: 100%; max-width: 540px; }
-        h1 { color: #00ff88; margin-bottom: 8px; }
-        p { color: #aaa; margin-bottom: 30px; }
-        .sekme-grup { display: flex; margin-bottom: 24px; border-bottom: 2px solid #333; }
-        .sekme { padding: 10px 20px; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-        .sekme.aktif { color: #00ff88; border-bottom: 2px solid #00ff88; }
+        :root {
+            --bg-dark: #05050a; --surface: #0f0f1e; --primary: #6366f1;
+            --secondary: #a855f7; --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --text-purity: #f8fafc; --text-muted: #94a3b8; --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.25s ease; }
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+            color: var(--text-purity); min-height: 100vh; display: flex; padding: 40px 20px; justify-content: center;
+        }
+        .container { width: 100%; max-width: 680px; }
+        .card {
+            background: rgba(15, 15, 30, 0.6); padding: 32px; border-radius: 24px;
+            border: 1px solid var(--glass-border); backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin-bottom: 24px;
+        }
+        h1 { font-size: 26px; font-weight: 700; text-align: center; margin-bottom: 30px; }
+        h1 span { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .tab-nav { display: flex; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px; margin-bottom: 24px; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; border-radius: 9px; color: var(--text-muted); font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .tab.active { background: var(--accent-gradient); color: white; }
         .panel { display: none; }
-        .panel.aktif { display: block; }
-        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 14px; }
-        input[type=file], input[type=text] { width: 100%; padding: 10px; background: #0f0f1a; border: 1px solid #333; color: #fff; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
-        button { width: 100%; background: #00ff88; color: #000; border: none; padding: 14px; cursor: pointer; font-size: 16px; border-radius: 6px; font-weight: bold; }
-        button:hover { background: #00cc66; }
-        button:disabled { background: #333; color: #666; cursor: not-allowed; }
-        .sonuc { margin-top: 16px; padding: 12px; border-radius: 6px; text-align: center; }
-        .sonuc.basari { background: #0a2e1a; color: #00ff88; }
-        .sonuc.hata { background: #2e0a0a; color: #ff4444; }
+        .panel.active { display: block; animation: fadeIn 0.3s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .upload-container { position: relative; width: 100%; height: 110px; margin-bottom: 20px; }
+        .upload-container input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; z-index: 5; cursor: pointer; }
+        .upload-design { width: 100%; height: 100%; background: rgba(255, 255, 255, 0.02); border: 2px dashed var(--glass-border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+        .upload-container:hover .upload-design { border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
+
+        input[type=text] { width: 100%; padding: 16px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: #fff; border-radius: 12px; font-size: 15px; margin-bottom: 24px; outline: none; }
+        .btn-main { width: 100%; background: var(--accent-gradient); color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3); }
+
+        .search-area { display: flex; align-items: center; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 2px 12px; margin-bottom: 20px; }
+        .search-area input { background: transparent; border: none; color: #fff; padding: 12px; width: 100%; outline: none; font-size: 14px; }
+        .history-list { max-height: 350px; overflow-y: auto; padding-right: 8px; }
+        .history-item { background: rgba(255, 255, 255, 0.03); padding: 16px 20px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); margin-bottom: 12px; }
+        .history-item.hidden { display: none; }
+        .btn-download { background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 8px 16px; border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 600; border: 1px solid rgba(99, 102, 241, 0.2); }
+
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 10, 0.98);
+            z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .scanner-box { width: 340px; height: 200px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; font-family: monospace; font-size: 11px; overflow-y: auto; margin-bottom: 20px; }
+        .scanner-box::-webkit-scrollbar { width: 4px; }
+        .scanner-box::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 2px; }
+        .log-line { opacity: 0; transform: translateY(5px); animation: logIn 0.3s forwards; margin-bottom: 5px; }
+        @keyframes logIn { to { opacity: 1; transform: translateY(0); } }
+        .progress-bar-container { width: 340px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+        .progress-bar-fill { width: 0%; height: 100%; background: var(--accent-gradient); transition: width 0.4s ease; }
+        .status-msg { margin-top: 20px; padding: 14px; border-radius: 12px; text-align: center; font-size: 14px; display: none; }
+        .status-msg.active { display: block; }
+        .success { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+        .error { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="kart">
-        <h1>🔒 PentReport AI</h1>
-        <p>AI destekli güvenlik tarama ve raporlama aracı.</p>
 
-        <div class="sekme-grup">
-            <div class="sekme aktif" onclick="sekmeAc('xml')">XML Yükle</div>
-            <div class="sekme" onclick="sekmeAc('ip')">IP / Domain Tara</div>
+    <div id="loadingOverlay">
+        <div style="width: 50px; height: 50px; border: 3px solid rgba(99, 102, 241, 0.1); border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+        <h3 style="letter-spacing: 3px; font-size: 14px; margin-bottom: 15px;">ANALİZ SÜRÜYOR...</h3>
+        <div class="scanner-box" id="logBox"></div>
+        <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1>PentReport <span>AI</span></h1>
+            <div class="tab-nav">
+                <div class="tab active" onclick="switchTab('xml', this)"><i data-lucide="file-up" size="16"></i> XML Analizi</div>
+                <div class="tab" onclick="switchTab('ip', this)"><i data-lucide="target" size="16"></i> Canlı Tara</div>
+            </div>
+
+            <div id="xml" class="panel active">
+                <div class="upload-container">
+                    <input type="file" id="dosya" accept=".xml" onchange="updateFileName()">
+                    <div class="upload-design"><i data-lucide="upload-cloud" size="28"></i><span id="fileNameDisplay">XML Dosyası Seçin</span></div>
+                </div>
+                <button class="btn-main" onclick="xmlRapor()"><i data-lucide="shield-check" size="20"></i> Analizi Başlat</button>
+            </div>
+
+            <div id="ip" class="panel">
+                <input type="text" id="hedef" placeholder="Hedef Domain veya IP girin...">
+                <button class="btn-main" onclick="ipRapor()"><i data-lucide="zap" size="20"></i> Taramayı Başlat</button>
+            </div>
+            <div id="sonuc" class="status-msg"></div>
         </div>
 
-        <div id="xml" class="panel aktif">
-            <label>Nmap XML dosyası seç:</label>
-            <input type="file" id="dosya" accept=".xml">
-            <button id="xmlBtn" onclick="xmlRapor()">Rapor Oluştur</button>
+        <div class="card">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                <i data-lucide="archive" size="20" color="#6366f1"></i><h2 style="font-size: 18px;">Arşiv</h2>
+            </div>
+            <div class="search-area"><i data-lucide="search" style="margin-right: 10px; color: var(--text-muted);"></i><input type="text" id="searchBox" placeholder="Hedef ara..." onkeyup="filterReports()"></div>
+            <div class="history-list" id="gecmis"></div>
         </div>
-
-        <div id="ip" class="panel">
-            <label>IP adresi veya domain gir:</label>
-            <input type="text" id="hedef" placeholder="örn: 192.168.1.1 veya example.com">
-            <button id="ipBtn" onclick="ipRapor()">Tara ve Raporla</button>
-        </div>
-
-        <div id="sonuc"></div>
     </div>
 
     <script>
-        function sekmeAc(id) {
-            document.querySelectorAll('.sekme').forEach(s => s.classList.remove('aktif'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('aktif'));
-            document.getElementById(id).classList.add('aktif');
-            event.target.classList.add('aktif');
+        lucide.createIcons();
+
+        function switchTab(id, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); el.classList.add('active');
         }
 
-        async function xmlRapor() {
-            const dosya = document.getElementById('dosya').files[0];
-            if (!dosya) { sonucGoster('Lütfen XML dosyası seçin.', 'hata'); return; }
-            const btn = document.getElementById('xmlBtn');
-            btn.disabled = true; btn.innerText = '⏳ Rapor oluşturuluyor...';
-            const form = new FormData();
-            form.append('file', dosya);
+        function updateFileName() {
+            const input = document.getElementById('dosya');
+            if (input.files[0]) document.getElementById('fileNameDisplay').innerText = input.files[0].name;
+        }
+
+        function filterReports() {
+            const query = document.getElementById('searchBox').value.toLowerCase();
+            document.querySelectorAll('.history-item').forEach(item => {
+                const text = item.querySelector('h4').innerText.toLowerCase();
+                item.classList.toggle('hidden', !text.includes(query));
+            });
+        }
+
+        function showMsg(msg, type) {
+        const el = document.getElementById('sonuc');
+        el.innerText = msg;
+        el.className = `status-msg active ${type}`;
+        const sure = type === 'error' ? 10000 : 50000;
+        setTimeout(() => el.className = 'status-msg', sure);
+        }
+
+        function startLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            const logs = [
+                { text: "[INIT] PentReport AI motoru başlatılıyor...", color: "#a78bfa" },
+                { text: "[NMAP] Hedef sisteme bağlanılıyor...", color: "#34d399" },
+                { text: "[SCAN] TCP portları taranıyor...", color: "#34d399" },
+                { text: "[SCAN] Servis versiyonları tespit ediliyor...", color: "#34d399" },
+                { text: "[SSL] TLS cipher suite analizi yapılıyor...", color: "#f87171" },
+                { text: "[DNS] DNS kayıtları sorgulanıyor...", color: "#f87171" },
+                { text: "[HTTP] Güvenlik başlıkları kontrol ediliyor...", color: "#f87171" },
+                { text: "[NVD] CVE veritabanı sorgulanıyor...", color: "#f87171" },
+                { text: "[AI] Gemini analiz motoru devreye alındı...", color: "#f59e0b" },
+                { text: "[AI] Zafiyetler yorumlanıyor...", color: "#f59e0b" },
+                { text: "[AI] Risk seviyeleri hesaplanıyor...", color: "#f59e0b" },
+                { text: "[PDF] Rapor şablonu oluşturuluyor...", color: "#60a5fa" },
+                { text: "[PDF] Türkçe font yükleniyor...", color: "#60a5fa" },
+                { text: "[GEN] PDF raporu derleniyor...", color: "#60a5fa" },
+            ];
+
+            const logBox = document.getElementById('logBox');
+            let idx = 0;
+            let active = true;
+            let waitInterval = null;
+
+            function addNextLog() {
+                if (!active) return;
+                if (idx < logs.length) {
+                    const l = document.createElement('div');
+                    l.className = 'log-line';
+                    l.style.color = logs[idx].color;
+                    l.innerText = logs[idx].text;
+                    logBox.appendChild(l);
+                    logBox.scrollTop = logBox.scrollHeight;
+                    idx++;
+                    setTimeout(addNextLog, 800 + Math.random() * 600);
+                } else {
+                    // Tüm loglar bitti — backend bekleniyor
+                    waitInterval = setInterval(() => {
+                        if (!active) return;
+                        const w = document.createElement('div');
+                        w.className = 'log-line';
+                        w.style.color = '#475569';
+                        w.innerText = '[WAIT] Sunucu yanıtı bekleniyor...';
+                        logBox.appendChild(w);
+                        logBox.scrollTop = logBox.scrollHeight;
+                    }, 3000);
+                }
+            }
+
+            addNextLog();
+
+            let progress = 0;
+            const progInt = setInterval(() => {
+                if (progress < 92) {
+                    progress += Math.random() * 1.5;
+                    document.getElementById('progressBar').style.width = Math.min(progress, 92) + '%';
+                }
+            }, 600);
+
+            return {
+                progInt,
+                stop: () => {
+                    active = false;
+                    if (waitInterval) clearInterval(waitInterval);
+                }
+            };
+        }
+
+        function stopLoading(i) {
+            i.stop();
+            clearInterval(i.progInt);
+
+            const logBox = document.getElementById('logBox');
+            const done = document.createElement('div');
+            done.className = 'log-line';
+            done.style.color = '#4ade80';
+            done.innerText = '[DONE] Rapor teslimata hazır ✓';
+            logBox.appendChild(done);
+            logBox.scrollTop = logBox.scrollHeight;
+
+            document.getElementById('progressBar').style.width = '100%';
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('logBox').innerHTML = '';
+                document.getElementById('progressBar').style.width = '0%';
+            }, 900);
+        }
+
+        async function fetchHistory() {
             try {
-                const res = await fetch('/rapor', { method: 'POST', body: form });
-                if (res.ok) {
-                    const blob = await res.blob();
-                    indir(blob, 'guvenlik_raporu.pdf');
-                    sonucGoster('✅ Rapor indirildi!', 'basari');
-                } else { sonucGoster('❌ Hata oluştu.', 'hata'); }
-            } catch(e) { sonucGoster('❌ Bağlantı hatası.', 'hata'); }
-            btn.disabled = false; btn.innerText = 'Rapor Oluştur';
+                const res = await fetch('/gecmis');
+                const data = await res.json();
+                document.getElementById('gecmis').innerHTML = data.map(r => `
+                    <div class="history-item">
+                        <div><h4>${r.hedef}</h4><p style="font-size:11px;color:var(--text-muted)">${r.tarih}</p></div>
+                        <a href="/gecmis/${r.id}/indir" class="btn-download">PDF</a>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            } catch (e) { console.error(e); }
         }
 
         async function ipRapor() {
-            const hedef = document.getElementById('hedef').value.trim();
-            if (!hedef) { sonucGoster('Lütfen IP veya domain girin.', 'hata'); return; }
-            const btn = document.getElementById('ipBtn');
-            btn.disabled = true; btn.innerText = '⏳ Taranıyor... (1-2 dakika sürebilir)';
+            const target = document.getElementById('hedef').value.trim();
+            if(!target) return showMsg('Hedef girin!', 'error');
+            const i = startLoading();
             try {
-                const res = await fetch(`/tara-ve-raporla?hedef=${hedef}`, { method: 'POST' });
+                const res = await fetch(`/tara-ve-raporla?hedef=${target}`, { method: 'POST' });
                 if (res.ok) {
                     const blob = await res.blob();
-                    indir(blob, `${hedef}_rapor.pdf`);
-                    sonucGoster('✅ Rapor indirildi!', 'basari');
-                } else { sonucGoster('❌ Hata oluştu.', 'hata'); }
-            } catch(e) { sonucGoster('❌ Bağlantı hatası.', 'hata'); }
-            btn.disabled = false; btn.innerText = 'Tara ve Raporla';
+                    const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = `${target}_Rapor.pdf`; a.click();
+                    showMsg('Başarılı!', 'success'); fetchHistory();
+                } else {
+                    try {
+                        const errData = await res.json();
+                        showMsg(errData.detail || 'Sunucu hatası oluştu!', 'error');
+                    } catch(jsonErr) {
+                        showMsg('Beklenmeyen bir hata oluştu!', 'error');
+                    }
+                }
+            } catch (e) { showMsg('Bağlantı Hatası!', 'error'); }
+            finally { stopLoading(i); }
         }
 
-        function indir(blob, dosyaAdi) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = dosyaAdi; a.click();
+        async function xmlRapor() {
+            const file = document.getElementById('dosya').files[0];
+            if(!file) return showMsg('Dosya seçin!', 'error');
+            const i = startLoading();
+            const fd = new FormData(); fd.append('file', file);
+            try {
+                const res = await fetch('/rapor', { method: 'POST', body: fd });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = `Analiz.pdf`; a.click();
+                    showMsg('Başarılı!', 'success'); fetchHistory();
+                } else {
+                    try {
+                        const errData = await res.json();
+                        showMsg(errData.detail || 'Sunucu hatası oluştu!', 'error');
+                    } catch(jsonErr) {
+                        showMsg('Beklenmeyen bir hata oluştu!', 'error');
+                    }
+                }
+            } catch (e) { showMsg('Bağlantı Hatası!', 'error'); }
+            finally { stopLoading(i); }
         }
 
-        function sonucGoster(mesaj, tip) {
-            const el = document.getElementById('sonuc');
-            el.className = `sonuc ${tip}`;
-            el.innerText = mesaj;
-        }
+        fetchHistory();
     </script>
-<div style="margin-top:30px;">
-    <h2 style="color:#00ff88; margin-bottom:16px;">📋 Rapor Geçmişi</h2>
-    <div id="gecmis"></div>
-</div>
-
-<script>
-    async function gecmisYukle() {
-        const res = await fetch('/gecmis');
-        const raporlar = await res.json();
-        const el = document.getElementById('gecmis');
-
-        if (raporlar.length === 0) {
-            el.innerHTML = '<p style="color:#aaa">Henüz rapor yok.</p>';
-            return;
-        }
-
-        el.innerHTML = raporlar.map(r => `
-            <div style="background:#0f0f1a; padding:12px; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span style="color:#00ff88">${r.hedef}</span>
-                    <span style="color:#aaa; font-size:12px; margin-left:12px">${r.tarih}</span>
-                </div>
-                <a href="/gecmis/${r.id}/indir" style="background:#00ff88; color:#000; padding:6px 14px; border-radius:4px; text-decoration:none; font-size:13px;">İndir</a>
-            </div>
-        `).join('');
-    }
-
-    // Sayfa açılınca geçmişi yükle
-    gecmisYukle();
-</script>
 </body>
 </html>

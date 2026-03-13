@@ -1,6 +1,7 @@
 import requests
 import ssl
 import socket
+import ipaddress
 import dns.resolver
 
 
@@ -24,8 +25,6 @@ def http_baslik_kontrol(hedef: str) -> dict:
 
 def ssl_kontrol(hedef: str) -> dict:
     try:
-        # IP ise SSL kontrolü yapma
-        import ipaddress
         try:
             ipaddress.ip_address(hedef)
             return {"gecerli": None, "bilgi": "IP adresi için SSL kontrolü yapılamaz, domain girin"}
@@ -46,14 +45,45 @@ def ssl_kontrol(hedef: str) -> dict:
 
 
 def dns_kontrol(hedef: str) -> dict:
+    # IP adresi girilmişse DNS sorgusu yapma
+    try:
+        ipaddress.ip_address(hedef)
+        return {
+            "Bilgi": "IP adresi tarandı — DNS kayıtları için domain adı giriniz"
+        }
+    except ValueError:
+        pass
+
     sonuclar = {}
     try:
-        for kayit in ["A", "MX", "TXT"]:
+        cozucu = dns.resolver.Resolver()
+        cozucu.nameservers = ['8.8.8.8', '1.1.1.1']
+        cozucu.timeout = 5
+        cozucu.lifetime = 10
+        for kayit in ["A", "MX", "TXT", "NS"]:
             try:
-                cevap = dns.resolver.resolve(hedef, kayit)
+                cevap = cozucu.resolve(hedef, kayit)
                 sonuclar[kayit] = [str(r) for r in cevap]
-            except:
-                sonuclar[kayit] = "Bulunamadı"
-    except:
-        pass
+            except dns.resolver.NXDOMAIN:
+                sonuclar[kayit] = "Alan adı bulunamadı"
+            except dns.resolver.NoAnswer:
+                sonuclar[kayit] = "Kayıt yok"
+            except dns.resolver.Timeout:
+                sonuclar[kayit] = "Sorgu zaman aşımına uğradı"
+            except Exception:
+                sonuclar[kayit] = "Sorgulanamadı"
+
+        # DNSSEC kontrolü - DS kaydı var mı?
+        try:
+            cozucu.resolve(hedef, "DS")
+            sonuclar["DNSSEC"] = "✅ İmzalı (DS kaydı mevcut)"
+        except dns.resolver.NoAnswer:
+            sonuclar["DNSSEC"] = "⚠️ İmzasız - DNS önbellek zehirlenmesi riski"
+        except dns.resolver.NXDOMAIN:
+            sonuclar["DNSSEC"] = "⚠️ İmzasız - DNS önbellek zehirlenmesi riski"
+        except Exception:
+            sonuclar["DNSSEC"] = "Sorgulanamadı"
+
+    except Exception:
+        return {"Hata": "DNS sorgusu başlatılamadı"}
     return sonuclar

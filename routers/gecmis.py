@@ -5,7 +5,6 @@ import os
 
 router = APIRouter()
 
-
 @router.get("/gecmis")
 async def gecmis_getir():
     raporlar = raporlari_getir()
@@ -18,7 +17,6 @@ async def gecmis_getir():
         }
         for r in raporlar
     ]
-
 
 @router.get("/gecmis/{rapor_id}/indir")
 async def rapor_indir(rapor_id: int):
